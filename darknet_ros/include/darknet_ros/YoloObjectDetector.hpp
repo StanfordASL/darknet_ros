@@ -229,7 +229,6 @@ class YoloObjectDetector
 
   void *displayLoop(void *ptr);
 
-  void *detectLoop(void *ptr);
 
   void setupNetwork(char *cfgfile, char *weightfile, char *datafile, float thresh,
                     char **names, int classes,

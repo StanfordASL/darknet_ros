@@ -172,10 +172,13 @@ void YoloObjectDetector::init()
                     std::string("check_for_objects"));
   checkForObjectsActionServer_.reset(
       new CheckForObjectsActionServer(nodeHandle_, checkForObjectsActionName, false));
+
   checkForObjectsActionServer_->registerGoalCallback(
       boost::bind(&YoloObjectDetector::checkForObjectsActionGoalCB, this));
+
   checkForObjectsActionServer_->registerPreemptCallback(
       boost::bind(&YoloObjectDetector::checkForObjectsActionPreemptCB, this));
+
   checkForObjectsActionServer_->start();
 }
 
@@ -447,13 +450,6 @@ void *YoloObjectDetector::displayLoop(void *ptr)
   }
 }
 
-void *YoloObjectDetector::detectLoop(void *ptr)
-{
-  while (1) {
-    detectInThread();
-  }
-}
-
 void YoloObjectDetector::setupNetwork(char *cfgfile, char *weightfile, char *datafile, float thresh,
                                       char **names, int classes,
                                       int delay, char *prefix, int avg_frames, float hier, int w, int h,
@@ -599,7 +595,7 @@ void *YoloObjectDetector::publishInThread()
     }
 
     darknet_ros_msgs::ObjectCount msg;
-    msg.header.stamp = ros::Time::now();
+    msg.header.stamp = headerBuff_[(buffIndex_ + 1) % 3].stamp;
     msg.header.frame_id = "detection";
     msg.count = num;
     objectPublisher_.publish(msg);
@@ -625,13 +621,13 @@ void *YoloObjectDetector::publishInThread()
         }
       }
     }
-    boundingBoxesResults_.header.stamp = ros::Time::now();
+    boundingBoxesResults_.header.stamp = headerBuff_[(buffIndex_ + 1) % 3].stamp;
     boundingBoxesResults_.header.frame_id = "detection";
     boundingBoxesResults_.image_header = headerBuff_[(buffIndex_ + 1) % 3];
     boundingBoxesPublisher_.publish(boundingBoxesResults_);
   } else {
     darknet_ros_msgs::ObjectCount msg;
-    msg.header.stamp = ros::Time::now();
+    msg.header.stamp = headerBuff_[(buffIndex_ + 1) % 3].stamp;
     msg.header.frame_id = "detection";
     msg.count = 0;
     objectPublisher_.publish(msg);
